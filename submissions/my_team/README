@@ -1,0 +1,21 @@
+Eden Molkandov,Yafit Roth,Einav Yehezkely,Sapir Babian
+213098346,324104918,213835796,212542286
+
+The Model:
+תיאור קצר של המודל:
+
+איזה מודל בניתן.
+אילו מניפולציות / augmentations ניסיתן.
+איך הכנסתן אותן לאימון.
+איך זה השפיע על הביצועים.
+
+challenge2_IDs/
+    train.py
+    model.py
+    predict.py
+    weights.joblib
+    README
+
+שם הקובץ להגשה
+
+challenge2_213098346_324104918_213835796_212542286
