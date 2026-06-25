@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import torchvision.models as models
+
 
 
 class ModelArchitecture(nn.Module):
@@ -23,7 +25,14 @@ class ModelArchitecture(nn.Module):
         #   define classifier
         #   define any other modules needed
 
-        raise NotImplementedError("TODO: implement ModelArchitecture.__init__")
+        super().__init__()
+
+        self.model = models.resnet18(weights=None)
+
+        in_features = self.model.fc.in_features
+        self.model.fc = nn.Linear(in_features, num_classes)
+
+        # raise NotImplementedError("TODO: implement ModelArchitecture.__init__")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -38,5 +47,6 @@ class ModelArchitecture(nn.Module):
 
         # TODO: write the forward pass here
         # The returned tensor should have shape [batch_size, 20]
+        return self.model(x)
 
-        raise NotImplementedError("TODO: implement ModelArchitecture.forward")
+        # raise NotImplementedError("TODO: implement ModelArchitecture.forward")
