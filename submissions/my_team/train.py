@@ -1,8 +1,7 @@
 from pathlib import Path
 import sys
+import time
 
-# Add the project root directory to Python's import path.
-# This allows importing base_model.py and labels.py from the project root.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.append(str(PROJECT_ROOT))
 
@@ -12,7 +11,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 from torchvision import transforms
 from tqdm import tqdm
 
@@ -24,187 +23,251 @@ from model import ModelArchitecture
 # Configuration
 # -----------------------------------------------------------------------------
 
-DATA_ROOT = PROJECT_ROOT / "dataset"
-OUTPUT = Path("weights.joblib")
+DATA_ROOT = PROJECT_ROOT / "dataset" / "train_set"
+AUG_ROOT = PROJECT_ROOT / "dataset" / "augmentations" / "augmentations"
+
+OUTPUT = Path(__file__).resolve().parent / "weights.joblib"
 
 IMAGE_SIZE = 64
-BATCH_SIZE = 128
-EPOCHS = 5
-LR = 0.0001
+BATCH_SIZE = 64
+EPOCHS = 10
+LR = 0.001
+
+
+def format_time(seconds):
+    minutes = int(seconds // 60)
+    seconds = int(seconds % 60)
+    return f"{minutes}m {seconds}s"
 
 
 def train_one_epoch(model, dataloader, criterion, optimizer, device):
-    """Train the model for one epoch."""
-
-    # Set the model to training mode.
     model.train()
 
     running_loss = 0.0
     correct = 0
     total = 0
 
-    # tqdm shows a progress bar for the current epoch.
-    progress_bar = tqdm(dataloader, desc="Training", leave=False)
+    progress_bar = tqdm(dataloader, desc="Training", leave=True)
 
     for images, labels in progress_bar:
-        # Move the current batch to the selected device.
         images = images.to(device)
         labels = labels.to(device)
 
-        # Clear gradients from the previous optimization step.
         optimizer.zero_grad()
 
-        # Forward pass.
         outputs = model(images)
-
-        # Compute the classification loss.
         loss = criterion(outputs, labels)
 
-        # Backward pass.
         loss.backward()
-
-        # Update model parameters.
         optimizer.step()
 
-        # Accumulate total loss.
         running_loss += loss.item() * images.size(0)
 
-        # Compute predictions and update accuracy counters.
-        _, preds = torch.max(outputs, dim=1)
+        preds = outputs.argmax(dim=1)
         correct += (preds == labels).sum().item()
         total += labels.size(0)
 
-        # Display current batch statistics in the progress bar.
+        current_acc = correct / total
+
         progress_bar.set_postfix(
             loss=f"{loss.item():.4f}",
-            acc=f"{correct / total:.4f}",
+            acc=f"{current_acc:.4f}",
         )
 
-    epoch_loss = running_loss / total
-    epoch_acc = correct / total
-
-    return epoch_loss, epoch_acc
+    return running_loss / total, correct / total
 
 
-def evaluate(model, dataloader, criterion, device):
-    """Evaluate the model on the validation set."""
-
-    # Set the model to evaluation mode.
+def evaluate(model, dataloader, criterion, device, name="Validation"):
     model.eval()
 
     running_loss = 0.0
     correct = 0
     total = 0
 
-    # Disable gradient calculation during validation.
     with torch.no_grad():
-        progress_bar = tqdm(dataloader, desc="Validation", leave=False)
+        progress_bar = tqdm(dataloader, desc=name, leave=True)
 
         for images, labels in progress_bar:
-            # Move the current batch to the selected device.
             images = images.to(device)
             labels = labels.to(device)
 
-            # Forward pass.
             outputs = model(images)
-
-            # Compute validation loss.
             loss = criterion(outputs, labels)
 
-            # Accumulate total loss.
             running_loss += loss.item() * images.size(0)
 
-            # Compute predictions and update accuracy counters.
-            _, preds = torch.max(outputs, dim=1)
+            preds = outputs.argmax(dim=1)
             correct += (preds == labels).sum().item()
             total += labels.size(0)
 
-            # Display current validation statistics in the progress bar.
+            current_acc = correct / total
+
             progress_bar.set_postfix(
                 loss=f"{loss.item():.4f}",
-                acc=f"{correct / total:.4f}",
+                acc=f"{current_acc:.4f}",
             )
 
-    epoch_loss = running_loss / total
-    epoch_acc = correct / total
-
-    return epoch_loss, epoch_acc
+    return running_loss / total, correct / total
 
 
-def plot_training_curves(train_losses, val_losses, train_accs, val_accs):
-    """Plot and save loss and accuracy curves."""
-
+def plot_training_curves(
+    train_losses,
+    clean_val_losses,
+    robust_val_losses,
+    train_accs,
+    clean_val_accs,
+    robust_val_accs,
+):
     epochs = range(1, len(train_losses) + 1)
+    output_dir = Path(__file__).resolve().parent
 
-    # Plot training and validation loss.
-    plt.figure(figsize=(6, 4))
-    plt.plot(epochs, train_losses, marker="o", label="Train")
-    plt.plot(epochs, val_losses, marker="o", label="Validation")
+    # Loss graph
+    plt.figure(figsize=(7, 5))
+    plt.plot(epochs, train_losses, marker="o", label="Train Loss")
+    plt.plot(epochs, clean_val_losses, marker="o", label="Clean Validation Loss")
+    plt.plot(epochs, robust_val_losses, marker="o", label="Robust Validation Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.title("Loss Across Epochs")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("loss_curve.png")
+    plt.savefig(output_dir / "loss_curve.png")
     plt.close()
 
-    # Plot training and validation accuracy.
-    plt.figure(figsize=(6, 4))
-    plt.plot(epochs, train_accs, marker="o", label="Train")
-    plt.plot(epochs, val_accs, marker="o", label="Validation")
+    # Accuracy graph
+    plt.figure(figsize=(7, 5))
+    plt.plot(epochs, train_accs, marker="o", label="Train Accuracy")
+    plt.plot(epochs, clean_val_accs, marker="o", label="Clean Validation Accuracy")
+    plt.plot(epochs, robust_val_accs, marker="o", label="Robust Validation Accuracy")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.title("Accuracy Across Epochs")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("accuracy_curve.png")
+    plt.savefig(output_dir / "accuracy_curve.png")
+    plt.close()
+
+    # Clean validation accuracy only
+    plt.figure(figsize=(7, 5))
+    plt.plot(epochs, clean_val_accs, marker="o", label="Clean Validation Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title("Clean Validation Accuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(output_dir / "clean_validation_accuracy_curve.png")
+    plt.close()
+
+    # Robust validation accuracy only
+    plt.figure(figsize=(7, 5))
+    plt.plot(epochs, robust_val_accs, marker="o", label="Robust Validation Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title("Robust Validation Accuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(output_dir / "robust_validation_accuracy_curve.png")
     plt.close()
 
 
 def main():
-    """Full training pipeline that creates weights.joblib."""
-
-    # Select GPU if available, otherwise use CPU.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
 
-    # Training transformations include simple augmentations for robustness.
+    print("=" * 60)
+    print(f"Using device: {device}")
+    print("=" * 60)
+
+    # Stronger train augmentations.
+    # These are used while training, so the model sees many versions of the same image.
     train_transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(15),
+        transforms.RandomResizedCrop(
+            IMAGE_SIZE,
+            scale=(0.8, 1.0),
+            ratio=(0.9, 1.1),
+        ),
         transforms.ColorJitter(
             brightness=0.2,
             contrast=0.2,
             saturation=0.2,
+            hue=0.04,
+        ),
+        transforms.ToTensor(),
+    ])
+
+    # Clean validation transform.
+    # No random changes here, so we measure normal validation accuracy.
+    clean_val_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+    ])
+
+    # Robust validation transform.
+    # This checks whether the model still works after visual changes.
+    robust_val_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.RandomRotation(15),
+        transforms.ColorJitter(
+            brightness=0.25,
+            contrast=0.25,
+            saturation=0.25,
             hue=0.05,
         ),
         transforms.ToTensor(),
     ])
 
-    # Validation transformations should not include random augmentation.
-    val_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.ToTensor(),
-    ])
-
-    # Load the existing train and validation folders.
-    # ImageNetSubset expects the dataset root and the split name separately.
-    train_dataset = ImageNetSubset(
+    # Regular training dataset
+    regular_train_dataset = ImageNetSubset(
         DATA_ROOT,
         split="train",
         transform=train_transform,
     )
 
-    val_dataset = ImageNetSubset(
+    train_datasets = [regular_train_dataset]
+
+    # Add provided augmentation folders into training, if they exist.
+    # This exposes the model to already-manipulated images.
+    color_jitter_path = AUG_ROOT / "color_jitter"
+    random_rotation_path = AUG_ROOT / "random_rotation"
+
+    if color_jitter_path.exists():
+        color_jitter_dataset = ImageNetSubset(
+            AUG_ROOT,
+            split="color_jitter",
+            transform=train_transform,
+        )
+        train_datasets.append(color_jitter_dataset)
+
+    if random_rotation_path.exists():
+        random_rotation_dataset = ImageNetSubset(
+            AUG_ROOT,
+            split="random_rotation",
+            transform=train_transform,
+        )
+        train_datasets.append(random_rotation_dataset)
+
+    train_dataset = ConcatDataset(train_datasets)
+
+    # Clean validation dataset
+    clean_val_dataset = ImageNetSubset(
         DATA_ROOT,
         split="validation",
-        transform=val_transform,
+        transform=clean_val_transform,
     )
 
-    # Create data loaders for mini-batch training and validation.
+    # Robust validation dataset: same validation images, but with visual changes
+    robust_val_dataset = ImageNetSubset(
+        DATA_ROOT,
+        split="validation",
+        transform=robust_val_transform,
+    )
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=BATCH_SIZE,
@@ -212,36 +275,56 @@ def main():
         num_workers=0,
     )
 
-    val_loader = DataLoader(
-        val_dataset,
+    clean_val_loader = DataLoader(
+        clean_val_dataset,
         batch_size=BATCH_SIZE,
         shuffle=False,
         num_workers=0,
     )
 
-    print(f"Training samples   : {len(train_dataset)}")
-    print(f"Validation samples : {len(val_dataset)}")
+    robust_val_loader = DataLoader(
+        robust_val_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        num_workers=0,
+    )
 
-    # Initialize the model from scratch.
+    print(f"Training samples          : {len(train_dataset)}")
+    print(f"Clean validation samples  : {len(clean_val_dataset)}")
+    print(f"Robust validation samples : {len(robust_val_dataset)}")
+    print(f"Image size                : {IMAGE_SIZE}x{IMAGE_SIZE}")
+    print(f"Batch size                : {BATCH_SIZE}")
+    print(f"Epochs                    : {EPOCHS}")
+    print(f"Learning rate             : {LR}")
+    print("=" * 60)
+
     model = ModelArchitecture(num_classes=20).to(device)
 
-    # Cross-entropy is suitable for multi-class classification.
     criterion = nn.CrossEntropyLoss()
 
-    # Adam optimizer with a small learning rate.
     optimizer = optim.Adam(
         model.parameters(),
         lr=LR,
     )
 
-    # Store metrics for plotting after training.
     train_losses = []
-    val_losses = []
-    train_accs = []
-    val_accs = []
+    clean_val_losses = []
+    robust_val_losses = []
 
-    # Main training loop.
+    train_accs = []
+    clean_val_accs = []
+    robust_val_accs = []
+
+    best_score = 0.0
+    best_clean_acc = 0.0
+    best_robust_acc = 0.0
+
+    total_start_time = time.time()
+    epoch_times = []
+
     for epoch in range(EPOCHS):
+        epoch_start_time = time.time()
+
         print("\n" + "=" * 60)
         print(f"Epoch {epoch + 1}/{EPOCHS}")
         print("=" * 60)
@@ -254,43 +337,98 @@ def main():
             device,
         )
 
-        val_loss, val_acc = evaluate(
+        clean_val_loss, clean_val_acc = evaluate(
             model,
-            val_loader,
+            clean_val_loader,
             criterion,
             device,
+            name="Clean Validation",
+        )
+
+        robust_val_loss, robust_val_acc = evaluate(
+            model,
+            robust_val_loader,
+            criterion,
+            device,
+            name="Robust Validation",
         )
 
         train_losses.append(train_loss)
-        val_losses.append(val_loss)
+        clean_val_losses.append(clean_val_loss)
+        robust_val_losses.append(robust_val_loss)
+
         train_accs.append(train_acc)
-        val_accs.append(val_acc)
+        clean_val_accs.append(clean_val_acc)
+        robust_val_accs.append(robust_val_acc)
 
-        print(
-            f"Train Loss: {train_loss:.4f} | "
-            f"Train Accuracy: {train_acc:.4f}"
-        )
+        # We save according to a combined score:
+        # clean accuracy + robust accuracy.
+        # This matches the challenge idea: good standard accuracy and robustness.
+        combined_score = 0.5 * clean_val_acc + 0.5 * robust_val_acc
 
-        print(
-            f"Validation Loss: {val_loss:.4f} | "
-            f"Validation Accuracy: {val_acc:.4f}"
-        )
+        if combined_score > best_score:
+            best_score = combined_score
+            best_clean_acc = clean_val_acc
+            best_robust_acc = robust_val_acc
 
-    # Save loss and accuracy plots.
+            state_dict = model.cpu().state_dict()
+            joblib.dump(state_dict, OUTPUT)
+            model.to(device)
+
+            print("\nNew best model saved!")
+            print(f"Clean Validation Accuracy  : {clean_val_acc:.4f} ({clean_val_acc * 100:.2f}%)")
+            print(f"Robust Validation Accuracy : {robust_val_acc:.4f} ({robust_val_acc * 100:.2f}%)")
+            print(f"Combined Score             : {combined_score:.4f}")
+
+        epoch_time = time.time() - epoch_start_time
+        epoch_times.append(epoch_time)
+
+        avg_epoch_time = sum(epoch_times) / len(epoch_times)
+        epochs_left = EPOCHS - (epoch + 1)
+        estimated_time_left = avg_epoch_time * epochs_left
+
+        total_elapsed = time.time() - total_start_time
+
+        print("\nEpoch summary:")
+        print(f"Train Loss                 : {train_loss:.4f}")
+        print(f"Train Accuracy             : {train_acc:.4f} ({train_acc * 100:.2f}%)")
+        print(f"Clean Validation Loss      : {clean_val_loss:.4f}")
+        print(f"Clean Validation Accuracy  : {clean_val_acc:.4f} ({clean_val_acc * 100:.2f}%)")
+        print(f"Robust Validation Loss     : {robust_val_loss:.4f}")
+        print(f"Robust Validation Accuracy : {robust_val_acc:.4f} ({robust_val_acc * 100:.2f}%)")
+        print(f"Combined Score             : {combined_score:.4f}")
+        print(f"Best Combined Score        : {best_score:.4f}")
+
+        print("\nTime:")
+        print(f"Epoch time                 : {format_time(epoch_time)}")
+        print(f"Total elapsed              : {format_time(total_elapsed)}")
+        print(f"Estimated time left        : {format_time(estimated_time_left)}")
+
     plot_training_curves(
         train_losses,
-        val_losses,
+        clean_val_losses,
+        robust_val_losses,
         train_accs,
-        val_accs,
+        clean_val_accs,
+        robust_val_accs,
     )
 
-    print("\nSaved loss_curve.png and accuracy_curve.png")
+    total_time = time.time() - total_start_time
 
-    # Move model to CPU before saving for hardware-independent loading.
-    state_dict = model.cpu().state_dict()
-    joblib.dump(state_dict, OUTPUT)
+    print("\nSaved graphs:")
+    print("loss_curve.png")
+    print("accuracy_curve.png")
+    print("clean_validation_accuracy_curve.png")
+    print("robust_validation_accuracy_curve.png")
 
-    print(f"Saved trained weights to {OUTPUT}")
+    print("\n" + "=" * 60)
+    print("Training finished!")
+    print(f"Total training time        : {format_time(total_time)}")
+    print(f"Best combined score        : {best_score:.4f}")
+    print(f"Best clean validation acc  : {best_clean_acc:.4f} ({best_clean_acc * 100:.2f}%)")
+    print(f"Best robust validation acc : {best_robust_acc:.4f} ({best_robust_acc * 100:.2f}%)")
+    print(f"Best weights saved to      : {OUTPUT}")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
