@@ -1,0 +1,192 @@
+====================================================
+Using device: cpu
+============================================================
+Loaded 16000 images from C:\Users\edenm\Hackathon IML\PixelPerfect_IMLHackaton\dataset\train_set\train
+Loaded 4000 images from C:\Users\edenm\Hackathon IML\PixelPerfect_IMLHackaton\dataset\train_set\validation
+Training samples   : 16000
+Validation samples : 4000
+Image size         : 32x32
+Batch size         : 64
+Epochs             : 10
+Learning rate      : 0.001
+============================================================
+
+============================================================
+Epoch 1/10
+============================================================
+Training: 100%|██████████| 250/250 [01:48<00:00,  2.31it/s, acc=0.1636, loss=2.5316]
+Validation: 100%|██████████| 63/63 [00:15<00:00,  3.96it/s, acc=0.2167, loss=2.4761]
+
+Epoch summary:
+Train Loss          : 2.6360
+Train Accuracy      : 0.1636 (16.36%)
+Validation Loss     : 2.4473
+Validation Accuracy : 0.2167 (21.68%)
+
+Time:
+Epoch time          : 2m 4s
+Total elapsed       : 2m 4s
+Estimated time left : 18m 39s
+
+============================================================
+Epoch 2/10
+============================================================
+Training: 100%|██████████| 250/250 [01:08<00:00,  3.64it/s, acc=0.2408, loss=2.3601]
+Validation: 100%|██████████| 63/63 [00:15<00:00,  3.97it/s, acc=0.2995, loss=2.4071]
+Training:   0%|          | 0/250 [00:00<?, ?it/s]
+Epoch summary:
+Train Loss          : 2.3887
+Train Accuracy      : 0.2408 (24.08%)
+Validation Loss     : 2.2614
+Validation Accuracy : 0.2995 (29.95%)
+
+Time:
+Epoch time          : 1m 24s
+Total elapsed       : 3m 28s
+Estimated time left : 13m 55s
+
+============================================================
+Epoch 3/10
+============================================================
+Training: 100%|██████████| 250/250 [01:09<00:00,  3.58it/s, acc=0.3025, loss=2.2801]
+Validation: 100%|██████████| 63/63 [00:15<00:00,  3.94it/s, acc=0.3167, loss=3.1139]
+Training:   0%|          | 0/250 [00:00<?, ?it/s]
+Epoch summary:
+Train Loss          : 2.2198
+Train Accuracy      : 0.3025 (30.25%)
+Validation Loss     : 2.1465
+Validation Accuracy : 0.3167 (31.67%)
+
+Time:
+Epoch time          : 1m 25s
+Total elapsed       : 4m 54s
+Estimated time left : 11m 27s
+
+============================================================
+Epoch 4/10
+============================================================
+Training: 100%|██████████| 250/250 [01:09<00:00,  3.62it/s, acc=0.3294, loss=2.0505]
+Validation: 100%|██████████| 63/63 [00:15<00:00,  3.98it/s, acc=0.3407, loss=2.0281]
+Training:   0%|          | 0/250 [00:00<?, ?it/s]
+Epoch summary:
+Train Loss          : 2.1312
+Train Accuracy      : 0.3294 (32.94%)
+Validation Loss     : 2.0663
+Validation Accuracy : 0.3407 (34.08%)
+
+Time:
+Epoch time          : 1m 24s
+Total elapsed       : 6m 19s
+Estimated time left : 9m 29s
+
+============================================================
+Epoch 5/10
+============================================================
+Training: 100%|██████████| 250/250 [01:09<00:00,  3.58it/s, acc=0.3539, loss=1.8464]
+Validation: 100%|██████████| 63/63 [00:16<00:00,  3.90it/s, acc=0.3643, loss=2.2736]
+Training:   0%|          | 0/250 [00:00<?, ?it/s]
+Epoch summary:
+Train Loss          : 2.0556
+Train Accuracy      : 0.3539 (35.39%)
+Validation Loss     : 2.0125
+Validation Accuracy : 0.3643 (36.43%)
+
+Time:
+Epoch time          : 1m 25s
+Total elapsed       : 7m 45s
+Estimated time left : 7m 45s
+
+============================================================
+Epoch 6/10
+============================================================
+Training: 100%|██████████| 250/250 [01:08<00:00,  3.64it/s, acc=0.3775, loss=1.9162]
+Validation: 100%|██████████| 63/63 [00:15<00:00,  4.04it/s, acc=0.3915, loss=2.1714]
+Training:   0%|          | 0/250 [00:00<?, ?it/s]
+Epoch summary:
+Train Loss          : 1.9835
+Train Accuracy      : 0.3775 (37.75%)
+Validation Loss     : 1.9796
+Validation Accuracy : 0.3915 (39.15%)
+
+Time:
+Epoch time          : 1m 24s
+Total elapsed       : 9m 10s
+Estimated time left : 6m 6s
+
+============================================================
+Epoch 7/10
+============================================================
+Training: 100%|██████████| 250/250 [01:08<00:00,  3.65it/s, acc=0.3966, loss=1.9595]
+Validation: 100%|██████████| 63/63 [00:15<00:00,  4.01it/s, acc=0.3870, loss=1.9051]
+
+Epoch summary:
+Train Loss          : 1.9353
+Train Accuracy      : 0.3966 (39.66%)
+Validation Loss     : 1.9520
+Validation Accuracy : 0.3870 (38.70%)
+
+Time:
+Epoch time          : 1m 24s
+Total elapsed       : 10m 34s
+Estimated time left : 4m 31s
+
+============================================================
+Epoch 8/10
+============================================================
+Training: 100%|██████████| 250/250 [01:05<00:00,  3.79it/s, acc=0.4168, loss=1.7327]
+Validation: 100%|██████████| 63/63 [00:14<00:00,  4.34it/s, acc=0.4002, loss=1.3059]
+
+Epoch summary:
+Train Loss          : 1.8845
+Train Accuracy      : 0.4168 (41.68%)
+Validation Loss     : 1.9289
+Validation Accuracy : 0.4002 (40.02%)
+
+Time:
+Epoch time          : 1m 20s
+Total elapsed       : 11m 54s
+Estimated time left : 2m 58s
+
+============================================================
+Epoch 9/10
+============================================================
+Training: 100%|██████████| 250/250 [01:12<00:00,  3.44it/s, acc=0.4281, loss=1.9436]
+Validation: 100%|██████████| 63/63 [00:16<00:00,  3.80it/s, acc=0.4278, loss=1.8962]
+Training:   0%|          | 0/250 [00:00<?, ?it/s]
+Epoch summary:
+Train Loss          : 1.8378
+Train Accuracy      : 0.4281 (42.81%)
+Validation Loss     : 1.8560
+Validation Accuracy : 0.4278 (42.77%)
+
+Time:
+Epoch time          : 1m 29s
+Total elapsed       : 13m 23s
+Estimated time left : 1m 29s
+
+============================================================
+Epoch 10/10
+============================================================
+Training: 100%|██████████| 250/250 [01:12<00:00,  3.43it/s, acc=0.4392, loss=1.5945]
+Validation: 100%|██████████| 63/63 [00:17<00:00,  3.62it/s, acc=0.4380, loss=1.2955]
+
+Epoch summary:
+Train Loss          : 1.8072
+Train Accuracy      : 0.4392 (43.92%)
+Validation Loss     : 1.8154
+Validation Accuracy : 0.4380 (43.80%)
+
+Time:
+Epoch time          : 1m 30s
+Total elapsed       : 14m 54s
+Estimated time left : 0m 0s
+
+Saved loss_curve.png and accuracy_curve.png
+
+============================================================
+Training finished!
+Total training time : 14m 55s
+Saved trained weights to: C:\Users\edenm\Hackathon IML\PixelPerfect_IMLHackaton\submissions\my_team\weights.joblib
+============================================================
+
+Process finished with exit code 0
