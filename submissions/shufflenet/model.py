@@ -26,7 +26,7 @@ class ModelArchitecture(nn.Module):
         #   define classifier
         #   define any other modules needed
 
-        self.model = models.shufflenet_v2_x1_5(
+        self.model = models.shufflenet_v2_x1_0(
             weights=None
         )
 
