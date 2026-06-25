@@ -14,8 +14,10 @@ from model import ModelArchitecture
 DATA_ROOT = Path("../../dataset")
 OUTPUT = Path("weights.joblib")
 
-IMAGE_SIZE = None
-BATCH_SIZE = None
+IMAGE_SIZE = 64
+BATCH_SIZE = 64
+EPOCHS = 5
+LR = 1e-3
 
 
 
