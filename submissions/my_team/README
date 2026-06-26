@@ -1,21 +1,20 @@
 Eden Molkandov,Yafit Roth,Einav Yehezkely,Sapir Babian
 213098346,324104918,213835796,212542286
 
-The Model:
-תיאור קצר של המודל:
+Our final model is based on ShuffleNetV2 x1.0, trained from scratch (weights=None). We replaced the original classification head with a custom classifier consisting of a fully connected layer with 256 hidden units, followed by ReLU, Batch Normalization, Dropout (0.2), and a final linear layer for 20-class classification.
 
-איזה מודל בניתן.
-אילו מניפולציות / augmentations ניסיתן.
-איך הכנסתן אותן לאימון.
-איך זה השפיע על הביצועים.
+We began with a simple CNN baseline composed of three convolutional blocks followed by global average pooling and a linear classifier. After establishing a working training pipeline, we gradually improved the architecture by increasing the network depth, adding Batch Normalization and Dropout, and introducing data augmentation. These modifications improved the model's robustness but were still limited in performance, reaching approximately 69% validation accuracy.
 
-challenge2_IDs/
-    train.py
-    model.py
-    predict.py
-    weights.joblib
-    README
+We then switched to ShuffleNetV2, which provides a significantly more efficient architecture while maintaining low computational cost. This change alone resulted in a substantial improvement in accuracy.
 
-שם הקובץ להגשה
+During training we experimented with several techniques:
 
-challenge2_213098346_324104918_213835796_212542286
+- Increasing the input image resolution (32×32 → 64×64 → 256×256).
+- Data augmentation, including random horizontal flips, rotations, color jitter, Gaussian blur, affine translations, grayscale conversion, and Random Erasing.
+- Replacing the Adam optimizer with AdamW and adding weight decay for better regularization.
+- Using a StepLR scheduler to gradually reduce the learning rate during training.
+- Saving the model with the best validation accuracy instead of the final epoch.
+
+We tested different combinations of augmentations and hyperparameters throughout development. The stronger augmentation pipeline generally improved generalization, while the optimizer, scheduler, and regularization reduced overfitting and produced more stable training.
+
+Overall, the transition from the baseline CNN to ShuffleNetV2 together with the improved training strategy increased the validation accuracy from approximately 69% to 86.52%.

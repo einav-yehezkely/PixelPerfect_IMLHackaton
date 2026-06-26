@@ -25,7 +25,7 @@ OUTPUT = Path("weights.joblib")
 
 IMAGE_SIZE = 256
 BATCH_SIZE = 64
-EPOCHS = 15
+EPOCHS = 20
 LR = 0.01
 SUBSET_FRACTION = 1
 
@@ -275,7 +275,7 @@ def main():
 
     plot_training_progress()
 
-    state_dict = model.state_dict()
+    state_dict = model.cpu().state_dict()
     joblib.dump(state_dict, OUTPUT)
 
     output_txt = Path(__file__).resolve().parent / "output.txt"
